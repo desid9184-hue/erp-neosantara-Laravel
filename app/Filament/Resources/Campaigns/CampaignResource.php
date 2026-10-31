@@ -43,6 +43,12 @@ class CampaignResource extends Resource
                     ->label('Nama kampanye')
                     ->required()
                     ->maxLength(150),
+                Select::make('barang_id')
+                    ->label('Barang')
+                    ->relationship(name: 'barang', titleAttribute: 'nama_barang')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Select::make('channel')
                     ->label('Kanal pemasaran')
                     ->options(Campaign::CHANNELS)
@@ -84,6 +90,8 @@ class CampaignResource extends Resource
                     ->label('Nama kampanye')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('barang.nama_barang')
+                    ->label('Barang'),
                 TextColumn::make('channel')
                     ->label('Kanal')
                     ->formatStateUsing(fn (?string $state): string => Campaign::CHANNELS[$state] ?? '-')

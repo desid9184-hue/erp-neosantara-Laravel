@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'name',
+    'barang_id',
     'channel',
     'objective',
     'target_audience',
@@ -49,5 +52,15 @@ class Campaign extends Model
             'start_date' => 'date',
             'end_date' => 'date',
         ];
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function barang(): BelongsTo
+    {
+        return $this->belongsTo(Barang::class);
     }
 }
