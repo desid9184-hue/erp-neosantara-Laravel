@@ -15,6 +15,9 @@ class CampaignController extends Controller
         return [
             'name' => ['required', 'string', 'max:255'],
 
+            // Barang wajib dipilih dan harus tersedia di tabel barangs
+            'barang_id' => ['required', 'integer', 'exists:barangs,id'],
+
             'channel' => [
                 'required',
                 Rule::in(array_keys(Campaign::CHANNELS)),
@@ -22,7 +25,7 @@ class CampaignController extends Controller
 
             'objective' => ['nullable', 'string'],
             'target_audience' => ['nullable', 'string'],
-            'budget' => ['nullable', 'numeric', 'min:0'],
+            'budget' => ['required', 'numeric', 'min:0'],
 
             'start_date' => ['required', 'date'],
 
@@ -40,15 +43,34 @@ class CampaignController extends Controller
     }
 
     // GET /api/campaigns
+    // Mengambil semua kampanye beserta data barang
     public function index()
     {
+        $campaigns = Campaign::with('barang')
+            ->latest()
+            ->get();
+
         return response()->json([
             'success' => true,
-            'data' => Campaign::latest()->get(),
+            'data' => $campaigns,
+        ]);
+    }
+
+    // GET /api/campaigns/{id}
+    // Mengambil satu kampanye berdasarkan ID
+    public function show($id)
+    {
+        $campaign = Campaign::with('barang')
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $campaign,
         ]);
     }
 
     // POST /api/campaigns
+    // Menambahkan kampanye baru
     public function store(Request $request)
     {
         $validated = $request->validate(
@@ -56,6 +78,9 @@ class CampaignController extends Controller
         );
 
         $campaign = Campaign::create($validated);
+
+        // Ambil kembali data beserta relasi barang
+        $campaign->load('barang');
 
         return response()->json([
             'success' => true,
@@ -65,6 +90,7 @@ class CampaignController extends Controller
     }
 
     // PUT /api/campaigns/{id}
+    // Memperbarui kampanye
     public function update(Request $request, $id)
     {
         $campaign = Campaign::findOrFail($id);
@@ -75,6 +101,9 @@ class CampaignController extends Controller
 
         $campaign->update($validated);
 
+        // Ambil data terbaru beserta barang
+        $campaign->refresh()->load('barang');
+
         return response()->json([
             'success' => true,
             'message' => 'Kampanye berhasil diperbarui',
@@ -83,6 +112,7 @@ class CampaignController extends Controller
     }
 
     // DELETE /api/campaigns/{id}
+    // Menghapus kampanye
     public function destroy($id)
     {
         $campaign = Campaign::findOrFail($id);
